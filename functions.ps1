@@ -17,10 +17,10 @@ function LogMessage {
     $LogFile = "$ScriptPath\Logs\$LFTimeStamp-$topLevelScriptBase.log"
     $Severity = "[$Severity]"
     $LogEntry = "$TimeStamp : $Severity : $Message"
-    if ($Severity -eq "Error") { Write-Host $LogEntry -ForegroundColor Red }
-    elseif ($Severity -eq "Warn") { Write-Host $LogEntry -ForegroundColor Yellow }
-    elseif ($Severity -eq "Info") { Write-Host $LogEntry }
-    Add-Content -Path $LogFile -Value $LogEntry -Append
+    if ($Severity -eq "[Error]") { Write-Host "$LogEntry" -ForegroundColor Red }
+    elseif ($Severity -eq "[Warn]") { Write-Host "$LogEntry" -ForegroundColor Yellow }
+    elseif ($Severity -eq "[Info]") { Write-Host "$LogEntry" }
+    Add-Content -Path $LogFile -Value $LogEntry 
 
 }
 function UpdateScript {
