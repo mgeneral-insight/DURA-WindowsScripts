@@ -1,4 +1,4 @@
-$ScriptPath = "C:\Scripts\Insight"
+$ScriptPath = "E:\Share\Scripts\Test"
 $callStack = Get-PSCallStack
 if ($callStack | Where-Object ScriptName) {
     $topLevelScriptPath = ($callStack | Where-Object ScriptName).ScriptName[-1]
@@ -28,7 +28,7 @@ function UpdateScript {
         [string]$ScriptName
     )
     if (!(Test-Path -path "$ScriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/$ScriptName" -OutFile "$ScriptPath\temp\$ScriptName"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/$ScriptName" -OutFile "$ScriptPath\temp\$ScriptName" 
     $LatestHash = (Get-FileHash -Path "$ScriptPath\temp\$ScriptName").Hash
     if (!(Test-Path -Path "$ScriptPath\$ScriptName")) {
         $CurrentHash = "NULL"
@@ -39,6 +39,7 @@ function UpdateScript {
         Write-Host "Running script is not latest version, updating and restarting script."
         Copy-Item -Path "$ScriptPath\temp\$ScriptName" -Destination "$ScriptPath\$ScriptName" -Recurse
     }
+    Remove-Item -Path "$ScriptPath\temp\$ScriptName" -Force
 }
 function UpdateFunctions {
     if (!(Test-Path -path "$ScriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
@@ -53,4 +54,5 @@ function UpdateFunctions {
         Write-Host "Running script is not latest version, updating and restarting script."
         Copy-Item -Path "$ScriptPath\temp\functions.ps1" -Destination "$ScriptPath\functions.ps1" -Recurse
     }
+    Remove-Item -Path "$ScriptPath\temp\functions.ps1"
 }
