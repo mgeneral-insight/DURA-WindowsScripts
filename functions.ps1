@@ -28,7 +28,11 @@ function UpdateScript {
         [string]$ScriptName
     )
     if (!(Test-Path -path "$ScriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/$ScriptName" -OutFile "$ScriptPath\temp\$ScriptName" 
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/$ScriptName" -OutFile "$ScriptPath\temp\$ScriptName" -ErrorVariable DownloadFail
+    if ($DownloadFail) { 
+        LogMessage -Message "Failed to check for updates, Exiting" -Severity Error
+        Exit 1
+    }
     $LatestHash = (Get-FileHash -Path "$ScriptPath\temp\$ScriptName").Hash
     if (!(Test-Path -Path "$ScriptPath\$ScriptName")) {
         $CurrentHash = "NULL"
@@ -36,8 +40,10 @@ function UpdateScript {
         $CurrentHash = (Get-FileHash -Path "$ScriptPath\$ScriptName").Hash
     }
     if ($CurrentHash -ne $LatestHash) {
-        Write-Host "Running script is not latest version, updating and restarting script."
+        LogMessage -Message "$topLevelScript is not latest version, updating and restarting script."
         Copy-Item -Path "$ScriptPath\temp\$ScriptName" -Destination "$ScriptPath\$ScriptName" -Recurse
+    } else {
+        LogMessage -Message "$topLevelScript is up to date."
     }
     Remove-Item -Path "$ScriptPath\temp\$ScriptName" -Force
 }
@@ -51,8 +57,10 @@ function UpdateFunctions {
         $CurrentHash = (Get-FileHash -Path "$ScriptPath\functions.ps1").Hash
     }
     if ($CurrentHash -ne $LatestHash) {
-        Write-Host "Running script is not latest version, updating and restarting script."
+        LogMessage -message "Functions.ps1 is not latest version, updating and restarting script."
         Copy-Item -Path "$ScriptPath\temp\functions.ps1" -Destination "$ScriptPath\functions.ps1" -Recurse
+    } else {
+        LogMessage -Message "Functions.ps1 is up to date."
     }
     Remove-Item -Path "$ScriptPath\temp\functions.ps1"
 }
