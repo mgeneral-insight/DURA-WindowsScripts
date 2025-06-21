@@ -55,15 +55,21 @@ if ($batch) {
         } else {
             $updateRequired = CheckVersion
             if ($updateRequired -eq "Outdated") {
-                LogMessage -message "$server - Update Required, attempting to upgrade"
-                UpdateVersion
-                $checkUpgrade = CheckVersion
-                if ($checkUpgrade -eq "Current") {
-                    LogMessage -message "$server - Upgrade Successful"
-                    $result = "Upgraded Successfully"
-                } elseif ($checkUpgrade -eq "Outdated") {
-                    LogMessage -message "$server - Upgrade UNSUCCESSFUL" -Severity Error
-                    $result = "ERROR: Upgrade Failed"
+                $processrunning = get-process -Name "AzureDataStudio" -ComputerName $server -ErrorAction SilentlyContinue
+                if ($processrunning) { 
+                    LogMessage -message "AZDS is currently running, skipping" -Severity Warn
+                    $result = "Process running, skipping" 
+                } else {
+                    LogMessage -message "$server - Update Required, attempting to upgrade"
+                    UpdateVersion
+                    $checkUpgrade = CheckVersion
+                    if ($checkUpgrade -eq "Current") {
+                        LogMessage -message "$server - Upgrade Successful"
+                        $result = "Upgraded Successfully"
+                    } elseif ($checkUpgrade -eq "Outdated") {
+                        LogMessage -message "$server - Upgrade UNSUCCESSFUL" -Severity Error
+                        $result = "ERROR: Upgrade Failed"
+                    }
                 }
             } elseif ($updateRequired -eq "Current") {
                 LogMessage -message "$server - Update NOT Required, latest version already installed"
@@ -95,13 +101,18 @@ if ($batch) {
     }
     $updateRequired = CheckVersion
     if ($updateRequired -eq "Outdated") {
-        LogMessage -message "Update Required, attempting to upgrade"
-        UpdateVersion
-        $checkUpgrade = CheckVersion
-        if ($checkUpgrade -eq "Current") {
-            LogMessage -message "Upgrade Successful"
-        } elseif ($checkUpgrade -eq "Outdated") {
-            LogMessage -message "Upgrade UNSUCCESSFUL" -Severity Error
+        if ($processrunning) { 
+            LogMessage -message "AZDS is currently running, skipping" -Severity Warn
+            $result = "Process running, skipping" 
+        } else {
+            LogMessage -message "Update Required, attempting to upgrade"
+            UpdateVersion
+            $checkUpgrade = CheckVersion
+            if ($checkUpgrade -eq "Current") {
+                LogMessage -message "Upgrade Successful"
+            } elseif ($checkUpgrade -eq "Outdated") {
+                LogMessage -message "Upgrade UNSUCCESSFUL" -Severity Error
+            }
         }
     } elseif ($updateRequired -eq "Current") {
         LogMessage -message "Update NOT Required, latest version already installed"
