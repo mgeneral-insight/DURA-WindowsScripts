@@ -1,5 +1,5 @@
 . .\functions.ps1
-$scriptPath = "C:\scripts\insight\temp"
+$scriptPath = "C:\scripts\insight"
 $tempPath = "$scriptPath\temp"
 
 if (!(Test-Path -Path $tempPath)) {
