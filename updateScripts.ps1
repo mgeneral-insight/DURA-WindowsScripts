@@ -1,0 +1,33 @@
+$scriptPath = "C:\scripts\insight\temp"
+$tempPath = "$scriptPath\temp"
+
+if (!(Test-Path -Path $tempPath)) {
+    New-Item -ItemType Directory -Force -Path $tempPath
+}
+
+Remove-Item -Path "$tempPath\*" -Recurse -Force
+Invoke-WebRequest -Uri "https://github.com/mgeneral-insight/DURA-WindowsScripts/archive/refs/heads/main.zip" -OutFile "$tempPath\repository.zip"
+Expand-Archive -Path "$tempPath\repository.zip" -DestinationPath $tempPath -Force
+Remove-Item -Path "$tempPath\repository.zip" -Force
+
+Move-Item -Path "$tempPath\DURA-WindowsScripts-main\*" -Destination $tempPath 
+Remove-Item -Path "$tempPath\DURA-WindowsScripts-main" -Force
+
+$scripts = Get-ChildItem -Path $tempPath -File
+
+foreach ($script in $scripts) {
+    write-host $script
+    if (!(Test-Path -Path "$scriptPath\$script")) {
+        LogMessage -message "$script doesn't exist, creating"
+        Copy-Item -Path "$tempPath\$script" -Destination $scriptPath
+    } else {
+        $LatestHash = (Get-FileHash -Path "$tempPath\$script").Hash
+        $CurrentHash = (Get-FileHash -Path "$scriptPath\$script").Hash
+        if ($CurrentHash -ne $LatestHash) {
+            LogMessage -message "$script is outdated, updating"
+            Copy-Item -Path "$tempPath\$script" -Destination "$scriptPath\$script" -Recurse -Force
+        } else {
+            LogMessage -Message "$script is up to date."
+        }
+    }
+}
