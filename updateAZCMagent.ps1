@@ -3,9 +3,9 @@ param ([switch]$batch, $server)
 
 $latestVersion = Get-Content -Path "\\azncwv078\IT-Packages\Application Install Packages\AzureConnectedMachineAgent\CurrentVersion.txt"
 $date = Get-Date -Format MMddyyyy-HHMMss
-$infilepath = "C:\scripts\InFiles\AZMCUpgrade.csv"
+$infilepath = "C:\scripts\InFiles\AZCMUpgrade.csv"
 $infile = Get-Content -Path $infilepath
-$outfile = "C:\scripts\OutFiles\AZMCUpgrade-$date.csv"
+$outfile = "C:\scripts\OutFiles\AZCMUpgrade-$date.csv"
 Clear-Host
 Write-Host "This script will upgrade Azure Connected Machine Agent to the latest version: $latestVersion"
 
@@ -23,8 +23,8 @@ function UpdateVersion {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' }}
     Copy-Item -Path "\\azncwv078\IT-Packages\Application Install Packages\AzureConnectedMachineAgent\*.msi" -Destination \\$server\c$\IT\AZCMagent.msi
     Invoke-Command -ComputerName $server -ScriptBlock { 
-        $SPLUNKarg = '/i C:\IT\AZCMagent.msi /qn /l*v "C:\IT\azcmagentupgradesetup.log"'
-        Start-Process msiexec.exe -Wait -ArgumentList $SPLUNKarg
+        $InstallArg = '/i C:\IT\AZCMagent.msi /qn /l*v "C:\IT\azcmagentupgradesetup.log"'
+        Start-Process msiexec.exe -Wait -ArgumentList $InstallArg
     }
 }
 
@@ -45,7 +45,7 @@ if ($batch) {
     $i = 0
     foreach ($server in $infile) {
         $i++
-        Write-Progress -Id 0 -Activity 'Upgrading AZMC Agent' -Status "Processing $($1) of $serverCount" -CurrentOperation $server -PercentComplete (($i/$serverCount) * 100)
+        Write-Progress -Id 0 -Activity 'Upgrading AZCM Agent' -Status "Processing $($1) of $serverCount" -CurrentOperation $server -PercentComplete (($i/$serverCount) * 100)
         if (!(Test-Connection $server -Count 1 -ErrorAction SilentlyContinue)) {
             LogMessage -message "$server - Failed to ping" -Severity Error
             $result = "ERROR: Failed to connect"
@@ -66,7 +66,7 @@ if ($batch) {
                 LogMessage -message "$server - Update NOT Required, latest version already installed"
                 $result = "Upgrade not required"
             } elseif ($updateRequired -eq "NotInstalled") {
-                LogMessage -message "$server - AZMC Agent not installed, skipping." -Severity Warn
+                LogMessage -message "$server - AZCM Agent not installed, skipping." -Severity Warn
                 $result = "Not Installed"
             }
         }
@@ -77,7 +77,7 @@ if ($batch) {
     }
     $report | Export-Csv -NoTypeInformation $outfile
     $From = "Insight-Automations@duracell.com"
-    $Subject = "AZMC Agent Upgrade Report - $Date"
+    $Subject = "AZCM Agent Upgrade Report - $Date"
     $Body = "Attached is the Upgrade Report"
     $SMTPServer = "smtp.duracell.com"
     $SMTPPort = "25"
