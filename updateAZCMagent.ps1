@@ -26,7 +26,7 @@ function UpdateVersion {
     }
 }
 
-
+LogMessage -message "----- START -----"
 if ($batch) {
     $infilepath = "C:\scripts\InFiles\AZCMUpgrade.csv"
     $infile = Get-Content -Path $infilepath
@@ -119,3 +119,4 @@ if ($batch) {
         }
     }
 }
+LogMessage -message "----- END -----"
