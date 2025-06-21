@@ -15,7 +15,6 @@ function LogMessage {
     if (!(Test-Path -path "$scriptPath\Logs")) { $path = New-Item -Path "$scriptPath\Logs" -ItemType Directory }
     $LFTimeStamp = Get-Date -Format "yyyyMMdd"
     $LogFile = "$scriptPath\Logs\$LFTimeStamp-$topLevelScriptBase.log"
-    write-host "LF: $LogFile"
     $Severity = "[$Severity]"
     $LogEntry = "$TimeStamp : $Severity : $Message"
     if ($Severity -eq "[Error]") { Write-Host "$LogEntry" -ForegroundColor Red }
