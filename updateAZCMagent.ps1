@@ -7,7 +7,7 @@ $date = Get-Date -Format MMddyyyy-HHMMss
 $outfile = "C:\scripts\OutFiles\AZCMUpgrade-$date.csv"
 LogMessage -message "----- START -----"
 Clear-Host
-Write-Host "Hi This script will upgrade Azure Connected Machine Agent to the latest version: $latestVersion"
+Write-Host "This script will upgrade Azure Connected Machine Agent to the latest version: $latestVersion"
 
 
 function CheckVersion {
