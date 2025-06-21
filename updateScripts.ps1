@@ -17,7 +17,6 @@ Remove-Item -Path "$tempPath\DURA-WindowsScripts-main" -Force
 $scripts = Get-ChildItem -Path $tempPath -File
 
 foreach ($script in $scripts) {
-    write-host $script
     if (!(Test-Path -Path "$scriptPath\$script")) {
         LogMessage -message "$script doesn't exist, creating"
         Copy-Item -Path "$tempPath\$script" -Destination $scriptPath
