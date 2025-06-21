@@ -3,8 +3,6 @@ param ([switch]$batch, $server)
 
 $latestVersion = Get-Content -Path "\\azncwv078\IT-Packages\Application Install Packages\AzureConnectedMachineAgent\CurrentVersion.txt"
 $date = Get-Date -Format MMddyyyy-HHMMss
-$infilepath = "C:\scripts\InFiles\AZCMUpgrade.csv"
-$infile = Get-Content -Path $infilepath
 $outfile = "C:\scripts\OutFiles\AZCMUpgrade-$date.csv"
 Clear-Host
 Write-Host "This script will upgrade Azure Connected Machine Agent to the latest version: $latestVersion"
@@ -13,10 +11,10 @@ Write-Host "This script will upgrade Azure Connected Machine Agent to the latest
 function CheckVersion {
     $currentVersion = (Get-WmiObject -Class win32_product -ComputerName $server | Where-Object Name -eq "Azure Connected Machine Agent").version
     write-host $currentVersion
-    if (!($currentVersion)) { NotInstalled }
-    elseif ($latestVersion -ne $currentVersion) { Outdated } 
-    elseif ($latestVersion -eq $currentVersion) { Current } 
-    else { Unknown }
+    if (!($currentVersion)) { return "NotInstalled" }
+    elseif ($latestVersion -ne $currentVersion) { return "Outdated" } 
+    elseif ($latestVersion -eq $currentVersion) { return "Current" } 
+    else { return "Unknown" }
 }
 
 function UpdateVersion {
@@ -30,6 +28,8 @@ function UpdateVersion {
 
 
 if ($batch) {
+    $infilepath = "C:\scripts\InFiles\AZCMUpgrade.csv"
+    $infile = Get-Content -Path $infilepath
     if (!(Test-path -path $infilepath)) {
         LogMessage -message "Input file not found, please create $infilepath and add server list to it." -Severity Error
         exit 1
