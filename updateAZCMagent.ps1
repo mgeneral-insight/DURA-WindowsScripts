@@ -45,14 +45,14 @@ if ($batch) {
     $i = 0
     foreach ($server in $infile) {
         $i++
-        Write-Progress -Id 0 -Activity 'Upgrading AZCM Agent' -Status "Processing $($1) of $serverCount" -CurrentOperation $server -PercentComplete (($i/$serverCount) * 100)
+        Write-Progress -Id 0 -Activity 'Upgrading AZCM Agent' -Status "Processing $($i) of $serverCount" -CurrentOperation $server -PercentComplete (($i/$serverCount) * 100)
         if (!(Test-Connection $server -Count 1 -ErrorAction SilentlyContinue)) {
             LogMessage -message "$server - Failed to ping" -Severity Error
             $result = "ERROR: Failed to connect"
         } else {
             $updateRequired = CheckVersion
             if ($updateRequired -eq "Outdated") {
-                LogMessage -message "$server - Update Required, current version $currentVersion"
+                LogMessage -message "$server - Update Required, attempting to upgrade"
                 UpdateVersion
                 $checkUpgrade = CheckVersion
                 if ($checkUpgrade -eq "Current") {
@@ -92,7 +92,7 @@ if ($batch) {
     }
     $updateRequired = CheckVersion
     if ($updateRequired -eq "Outdated") {
-        LogMessage -message "Update Required, current version $currentVersion"
+        LogMessage -message "Update Required, attempting to upgrade"
         UpdateVersion
         $checkUpgrade = CheckVersion
         if ($checkUpgrade -eq "Current") {
@@ -114,7 +114,7 @@ if ($batch) {
         $checkUpgrade = CheckVersion
         if ($checkUpgrade -eq "Current") {
             LogMessage -message "Install Successful"
-        } elseif ($checkUpgrade -eq "Outdated") {
+        } elseif ($checkUpgrade -eq "NotInstalled") {
             LogMessage -message "Install UNSUCCESSFUL" -Severity Error
         }
     }
