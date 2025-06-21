@@ -4,13 +4,13 @@ param ([switch]$batch, $server)
 $latestVersion = Get-Content -Path "\\azncwv078\IT-Packages\Application Install Packages\AzureConnectedMachineAgent\CurrentVersion.txt"
 $date = Get-Date -Format MMddyyyy-HHMMss
 $outfile = "C:\scripts\OutFiles\AZCMUpgrade-$date.csv"
+LogMessage -message "----- START -----"
 Clear-Host
 Write-Host "This script will upgrade Azure Connected Machine Agent to the latest version: $latestVersion"
 
 
 function CheckVersion {
     $currentVersion = (Get-WmiObject -Class win32_product -ComputerName $server | Where-Object Name -eq "Azure Connected Machine Agent").version
-    write-host $currentVersion
     if (!($currentVersion)) { return "NotInstalled" }
     elseif ($latestVersion -ne $currentVersion) { return "Outdated" } 
     elseif ($latestVersion -eq $currentVersion) { return "Current" } 
@@ -26,7 +26,7 @@ function UpdateVersion {
     }
 }
 
-LogMessage -message "----- START -----"
+
 if ($batch) {
     $infilepath = "C:\scripts\InFiles\AZCMUpgrade.csv"
     $infile = Get-Content -Path $infilepath
