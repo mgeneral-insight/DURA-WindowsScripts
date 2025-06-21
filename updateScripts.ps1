@@ -31,3 +31,5 @@ foreach ($script in $scripts) {
         }
     }
 }
+
+Remove-Item -Path "$tempPath\*" -Recurse -Force
