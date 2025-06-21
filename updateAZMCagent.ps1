@@ -1,4 +1,5 @@
 param ([switch]$batch, $server)
+. .\functions.ps1
 
 $latestVersion = Get-Content -Path "\\azncwv078\IT-Packages\Application Install Packages\AzureConnectedMachineAgent\CurrentVersion.txt"
 $date = Get-Date -Format MMddyyyy-HHMMss
@@ -6,84 +7,115 @@ $infilepath = "C:\scripts\InFiles\AZMCUpgrade.csv"
 $infile = Get-Content -Path $infilepath
 $outfile = "C:\scripts\OutFiles\AZMCUpgrade-$date.csv"
 Clear-Host
-Write-Host "This script will upgrade Azure Machine Connected Agent to the latest version: $latestVersion"
+Write-Host "This script will upgrade Azure Connected Machine Agent to the latest version: $latestVersion"
+
+
+function CheckVersion {
+    $currentVersion = (Get-WmiObject -Class win32_product -ComputerName $server | Where-Object Name -eq "Azure Connected Machine Agent").version
+    write-host $currentVersion
+    if (!($currentVersion)) { NotInstalled }
+    elseif ($latestVersion -ne $currentVersion) { Outdated } 
+    elseif ($latestVersion -eq $currentVersion) { Current } 
+    else { Unknown }
+}
+
+function UpdateVersion {
+    Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' }}
+    Copy-Item -Path "\\azncwv078\IT-Packages\Application Install Packages\AzureConnectedMachineAgent\*.msi" -Destination \\$server\c$\IT\AZCMagent.msi
+    Invoke-Command -ComputerName $server -ScriptBlock { 
+        $SPLUNKarg = '/i C:\IT\AZCMagent.msi /qn /l*v "C:\IT\azcmagentupgradesetup.log"'
+        Start-Process msiexec.exe -Wait -ArgumentList $SPLUNKarg
+    }
+}
+
 
 if ($batch) {
-    Write-Host "-batch mode dectected, this script will run on the following servers defined in $infilepath`r`n"
-    $infile
+    if (!(Test-path -path $infilepath)) {
+        LogMessage -message "Input file not found, please create $infilepath and add server list to it." -Severity Error
+        exit 1
+    }
+
+    LogMessage -message "Batch Mode, Running on the following servers:"
+    LogMessage -message $infile
     while ("y","n" -notcontains $deploy) { $deploy = Read-Host -Prompt "`r`nDo you want to continue (y/n)?" }
-    if ($deploy -eq "n") { exit 1}
-    $email = Read-Host "Enter email address to send report to"
+    if ($deploy -eq "n") { exit 1 }
+    $email = Read-Host "Enter email address to send report to (press Enter to skip report)"
     $report = @()
+    $serverCount = $infile.Count
+    $i = 0
     foreach ($server in $infile) {
-        $server
-        if (!(Test-Connection $server -Count 1 -ErrorAction SilentlyContinue)) { 
-            $out = "ERROR: Could not ping" 
-            $vmtools = "ERROR"
-            $vmtools2 = "ERROR"
-            $out
+        $i++
+        Write-Progress -Id 0 -Activity 'Upgrading AZMC Agent' -Status "Processing $($1) of $serverCount" -CurrentOperation $server -PercentComplete (($i/$serverCount) * 100)
+        if (!(Test-Connection $server -Count 1 -ErrorAction SilentlyContinue)) {
+            LogMessage -message "$server - Failed to ping" -Severity Error
+            $result = "ERROR: Failed to connect"
         } else {
-            $vmtools = (Get-WmiObject -Class win32_product -ComputerName $server | Where-Object Name -eq "VMware Tools").version
-            if (!($vmtools)) { 
-                $out = "ERROR: VMWare Tools not installed"
-                $out
-            }
-            else {
-                if ($vmtools -eq $latestVMtools) { 
-                    $out = "Update Not Required"
-                    $out
+            $updateRequired = CheckVersion
+            if ($updateRequired -eq "Outdated") {
+                LogMessage -message "$server - Update Required, current version $currentVersion"
+                UpdateVersion
+                $checkUpgrade = CheckVersion
+                if ($checkUpgrade -eq "Current") {
+                    LogMessage -message "$server - Upgrade Successful"
+                    $result = "Upgraded Successfully"
+                } elseif ($checkUpgrade -eq "Outdated") {
+                    LogMessage -message "$server - Upgrade UNSUCCESSFUL" -Severity Error
+                    $result = "ERROR: Upgrade Failed"
                 }
-                else {
-                    Invoke-Command -ComputerName $server -ScriptBlock {
-                        if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' }
-                    }
-                    Copy-Item -Path "\\azncwv078\IT-Packages\Application Install Packages\VMware Tools\latest\*.exe" -Destination "\\$server\c$\IT\VMTools.exe"
-                    Invoke-Command -ComputerName $server -ScriptBlock { C:\IT\VMTools.exe /S /l "c:\IT\vmtools_install.txt" /v "/qn REBOOT=R" }
-                    Start-Sleep -Seconds 5
-                    $vmtools2 = (Get-WmiObject -Class win32_product -ComputerName $server | Where-Object Name -eq "VMware Tools").version
-                    if ($vmtools2 -ne $latestVMtools) { $out = "ERROR: Upgrade Failed" }
-                    else { $out = "SUCCESS: Upgrade succeeded" }
-                }
+            } elseif ($updateRequired -eq "Current") {
+                LogMessage -message "$server - Update NOT Required, latest version already installed"
+                $result = "Upgrade not required"
+            } elseif ($updateRequired -eq "NotInstalled") {
+                LogMessage -message "$server - AZMC Agent not installed, skipping." -Severity Warn
+                $result = "Not Installed"
             }
         }
         $report += [pscustomobject][ordered] @{
             "Server"=$server;
-            "InitialVersion"=$vmtools;
-            "FinalVersion"=$vmtools2;
-            "Note"=$out;
+            "Result"=$result;
         } 
     }
     $report | Export-Csv -NoTypeInformation $outfile
-    $From = "VMToolsUpgrade@duracell.com"
-    $Subject = "VMWare Tools Upgrade Report - $Date"
+    $From = "Insight-Automations@duracell.com"
+    $Subject = "AZMC Agent Upgrade Report - $Date"
     $Body = "Attached is the Upgrade Report"
     $SMTPServer = "smtp.duracell.com"
     $SMTPPort = "25"
-    Send-MailMessage -From $From -to $email -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -Attachments $outfile
+    if ($email) { Send-MailMessage -From $From -to $email -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -Attachments $outfile }
     Send-MailMessage -From $From -to "michael.general@insight.com" -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -Attachments $outfile
-
-} elseif (!($batch)) {
-    if (!($server)) { $server = Read-Host -Prompt "Enter Server Name" }
+} else {
+    if (!($server)) {$server = Read-Host -Prompt "Enter Server Name"}
+    LogMessage -message "Single Server Mode : Server $server"
     if (!(Test-Connection $server -Count 1 -ErrorAction SilentlyContinue)) { 
-        Write-Host "ERROR: Can not ping $serv" -ForegroundColor Red 
+        LogMessage -message "ERROR: Can not ping $server" -Severity Error 
         exit 1
     }
-    $vmtools = (Get-WmiObject -Class win32_product -ComputerName $server | Where-Object Name -eq "VMware Tools").version
-    if (!($vmtools)) { write-host "ERROR: VMware Tools not installed on $server." -ForegroundColor Red }
-    else {
-        Write-Host "Current version of VMware Tools installed on $server is $vmtools"
-        if ($vmtools -eq $latestVMtools) {
-            Write-Host "VMWare tools are at current version, Upgrade not required"
-        } else {
-            Write-Host "Upgrade Required, Attempting to upgrade VMware Tools" 
-            Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' } }
-            Copy-Item -Path "\\azncwv078\IT-Packages\Application Install Packages\VMware Tools\latest\*.exe" -Destination "\\$server\c$\IT\VMTools.exe"
-            Invoke-Command -ComputerName $server -ScriptBlock { C:\IT\VMTools.exe /S /l "c:\IT\vmtools_install.txt" /v "/qn REBOOT=R" }
-            Write-Host "Installer finished, verifying upgrade was successful..."
-            Start-Sleep -Seconds 5
-            $vmtools2 = (Get-WmiObject -Class win32_product -ComputerName $server | Where-Object Name -eq "VMware Tools").version
-            if ($vmtools2 -ne $latestVMtools) { write-host "Upgrade was UNSUCCESSFUL" -ForegroundColor Red }
-            else { Write-Host "Upgrade Successful" -ForegroundColor Green }
+    $updateRequired = CheckVersion
+    if ($updateRequired -eq "Outdated") {
+        LogMessage -message "Update Required, current version $currentVersion"
+        UpdateVersion
+        $checkUpgrade = CheckVersion
+        if ($checkUpgrade -eq "Current") {
+            LogMessage -message "Upgrade Successful"
+        } elseif ($checkUpgrade -eq "Outdated") {
+            LogMessage -message "Upgrade UNSUCCESSFUL" -Severity Error
+        }
+    } elseif ($updateRequired -eq "Current") {
+        LogMessage -message "Update NOT Required, latest version already installed"
+    } elseif ($updateRequired -eq "NotInstalled") {
+        LogMessage -message "AZCM Agent is not currently installed" -Severity Warn
+        while ("y","n" -notcontains $install) { $install = Read-Host -Prompt "`r`nDo you want to install AZCM Agent on $server (y/n)?" }
+        if ($deploy -eq "n") { 
+            LogMessage -message "User chose not to install AZCM Agent."
+            exit 1 
+        }
+        LogMessage -message "Installing AZCM Agent"
+        UpdateVersion
+        $checkUpgrade = CheckVersion
+        if ($checkUpgrade -eq "Current") {
+            LogMessage -message "Install Successful"
+        } elseif ($checkUpgrade -eq "Outdated") {
+            LogMessage -message "Install UNSUCCESSFUL" -Severity Error
         }
     }
 }
