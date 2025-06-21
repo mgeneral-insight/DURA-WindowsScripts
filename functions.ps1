@@ -1,4 +1,4 @@
-$ScriptPath = "E:\Share\Scripts\Test"
+$ScriptPath = "C:\scripts\insight"
 $callStack = Get-PSCallStack
 if ($callStack | Where-Object ScriptName) {
     $topLevelScriptPath = ($callStack | Where-Object ScriptName).ScriptName[-1]
