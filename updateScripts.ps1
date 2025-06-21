@@ -1,3 +1,4 @@
+. .\functions.ps1
 $scriptPath = "C:\scripts\insight\temp"
 $tempPath = "$scriptPath\temp"
 
