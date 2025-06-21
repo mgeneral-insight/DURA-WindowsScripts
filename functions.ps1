@@ -40,6 +40,7 @@ function UpdateScript {
         LogMessage -Message "$topLevelScript is not latest version, updating and restarting script."
         Copy-Item -Path "$scriptPath\temp\$topLevelScript" -Destination "$scriptPath\$topLevelScript" -Recurse
         & $topLevelscriptPath
+        exit
     } else {
         LogMessage -Message "$topLevelScript is up to date."
     }
