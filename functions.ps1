@@ -39,6 +39,7 @@ function UpdateScript {
     if ($CurrentHash -ne $LatestHash) {
         LogMessage -Message "$topLevelScript is not latest version, updating and restarting script."
         Copy-Item -Path "$scriptPath\temp\$topLevelScript" -Destination "$scriptPath\$topLevelScript" -Recurse
+        & $topLevelscriptPath
     } else {
         LogMessage -Message "$topLevelScript is up to date."
     }
