@@ -1,9 +1,9 @@
-$ScriptPath = "C:\scripts\insight"
+$scriptPath = "C:\scripts\insight"
 $callStack = Get-PSCallStack
 if ($callStack | Where-Object ScriptName) {
-    $topLevelScriptPath = ($callStack | Where-Object ScriptName).ScriptName[-1]
-    $topLevelScript = (Get-Item -Path $topLevelScriptPath).Name
-    $topLevelScriptBase = (Get-Item -Path $topLevelScriptPath).BaseName
+    $topLevelscriptPath = ($callStack | Where-Object ScriptName).ScriptName[-1]
+    $topLevelScript = (Get-Item -Path $topLevelscriptPath).Name
+    $topLevelScriptBase = (Get-Item -Path $topLevelscriptPath).BaseName
 }
 
 function LogMessage {
@@ -12,9 +12,10 @@ function LogMessage {
         [string]$Severity = "Info"
     )
     $TimeStamp = Get-Date
-    if (!(Test-Path -path "$ScriptPath\Logs")) { $path = New-Item -Path "$scriptPath\Logs" -ItemType Directory }
+    if (!(Test-Path -path "$scriptPath\Logs")) { $path = New-Item -Path "$scriptPath\Logs" -ItemType Directory }
     $LFTimeStamp = Get-Date -Format "yyyyMMdd"
-    $LogFile = "$ScriptPath\Logs\$LFTimeStamp-$topLevelScriptBase.log"
+    $LogFile = "$scriptPath\Logs\$LFTimeStamp-$topLevelScriptBase.log"
+    write-host "LF: $LogFile"
     $Severity = "[$Severity]"
     $LogEntry = "$TimeStamp : $Severity : $Message"
     if ($Severity -eq "[Error]") { Write-Host "$LogEntry" -ForegroundColor Red }
@@ -27,40 +28,40 @@ function UpdateScript {
     param (
         [string]$ScriptName
     )
-    if (!(Test-Path -path "$ScriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/$ScriptName" -OutFile "$ScriptPath\temp\$ScriptName" -ErrorVariable DownloadFail
+    if (!(Test-Path -path "$scriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/$ScriptName" -OutFile "$scriptPath\temp\$ScriptName" -ErrorVariable DownloadFail
     if ($DownloadFail) { 
         LogMessage -Message "Failed to check for updates, Exiting" -Severity Error
         Exit 1
     }
-    $LatestHash = (Get-FileHash -Path "$ScriptPath\temp\$ScriptName").Hash
-    if (!(Test-Path -Path "$ScriptPath\$ScriptName")) {
+    $LatestHash = (Get-FileHash -Path "$scriptPath\temp\$ScriptName").Hash
+    if (!(Test-Path -Path "$scriptPath\$ScriptName")) {
         $CurrentHash = "NULL"
     } else {
-        $CurrentHash = (Get-FileHash -Path "$ScriptPath\$ScriptName").Hash
+        $CurrentHash = (Get-FileHash -Path "$scriptPath\$ScriptName").Hash
     }
     if ($CurrentHash -ne $LatestHash) {
         LogMessage -Message "$topLevelScript is not latest version, updating and restarting script."
-        Copy-Item -Path "$ScriptPath\temp\$ScriptName" -Destination "$ScriptPath\$ScriptName" -Recurse
+        Copy-Item -Path "$scriptPath\temp\$ScriptName" -Destination "$scriptPath\$ScriptName" -Recurse
     } else {
         LogMessage -Message "$topLevelScript is up to date."
     }
-    Remove-Item -Path "$ScriptPath\temp\$ScriptName" -Force
+    Remove-Item -Path "$scriptPath\temp\$ScriptName" -Force
 }
 function UpdateFunctions {
-    if (!(Test-Path -path "$ScriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/functions.ps1" -OutFile "$ScriptPath\temp\functions.ps1"
-    $LatestHash = (Get-FileHash -Path "$ScriptPath\temp\functions.ps1").Hash
-    if (!(Test-Path -Path "$ScriptPath\functions.ps1")) {
+    if (!(Test-Path -path "$scriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/functions.ps1" -OutFile "$scriptPath\temp\functions.ps1"
+    $LatestHash = (Get-FileHash -Path "$scriptPath\temp\functions.ps1").Hash
+    if (!(Test-Path -Path "$scriptPath\functions.ps1")) {
         $CurrentHash = "NULL"
     } else {
-        $CurrentHash = (Get-FileHash -Path "$ScriptPath\functions.ps1").Hash
+        $CurrentHash = (Get-FileHash -Path "$scriptPath\functions.ps1").Hash
     }
     if ($CurrentHash -ne $LatestHash) {
         LogMessage -message "Functions.ps1 is not latest version, updating and restarting script."
-        Copy-Item -Path "$ScriptPath\temp\functions.ps1" -Destination "$ScriptPath\functions.ps1" -Recurse
+        Copy-Item -Path "$scriptPath\temp\functions.ps1" -Destination "$scriptPath\functions.ps1" -Recurse
     } else {
         LogMessage -Message "Functions.ps1 is up to date."
     }
-    Remove-Item -Path "$ScriptPath\temp\functions.ps1"
+    Remove-Item -Path "$scriptPath\temp\functions.ps1"
 }
