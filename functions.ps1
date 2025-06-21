@@ -24,28 +24,25 @@ function LogMessage {
 
 }
 function UpdateScript {
-    param (
-        [string]$ScriptName
-    )
     if (!(Test-Path -path "$scriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/$ScriptName" -OutFile "$scriptPath\temp\$ScriptName" -ErrorVariable DownloadFail
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/$topLevelScript" -OutFile "$scriptPath\temp\$topLevelScript" -ErrorVariable DownloadFail
     if ($DownloadFail) { 
         LogMessage -Message "Failed to check for updates, Exiting" -Severity Error
         Exit 1
     }
-    $LatestHash = (Get-FileHash -Path "$scriptPath\temp\$ScriptName").Hash
-    if (!(Test-Path -Path "$scriptPath\$ScriptName")) {
+    $LatestHash = (Get-FileHash -Path "$scriptPath\temp\$topLevelScript").Hash
+    if (!(Test-Path -Path "$scriptPath\$topLevelScript")) {
         $CurrentHash = "NULL"
     } else {
-        $CurrentHash = (Get-FileHash -Path "$scriptPath\$ScriptName").Hash
+        $CurrentHash = (Get-FileHash -Path "$scriptPath\$topLevelScript").Hash
     }
     if ($CurrentHash -ne $LatestHash) {
         LogMessage -Message "$topLevelScript is not latest version, updating and restarting script."
-        Copy-Item -Path "$scriptPath\temp\$ScriptName" -Destination "$scriptPath\$ScriptName" -Recurse
+        Copy-Item -Path "$scriptPath\temp\$topLevelScript" -Destination "$scriptPath\$topLevelScript" -Recurse
     } else {
         LogMessage -Message "$topLevelScript is up to date."
     }
-    Remove-Item -Path "$scriptPath\temp\$ScriptName" -Force
+    Remove-Item -Path "$scriptPath\temp\$topLevelScript" -Force
 }
 function UpdateFunctions {
     if (!(Test-Path -path "$scriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
