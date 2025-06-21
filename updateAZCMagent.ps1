@@ -1,12 +1,13 @@
 param ([switch]$batch, $server)
 . .\functions.ps1
+UpdateScript
 
 $latestVersion = Get-Content -Path "\\azncwv078\IT-Packages\Application Install Packages\AzureConnectedMachineAgent\CurrentVersion.txt"
 $date = Get-Date -Format MMddyyyy-HHMMss
 $outfile = "C:\scripts\OutFiles\AZCMUpgrade-$date.csv"
 LogMessage -message "----- START -----"
 Clear-Host
-Write-Host "HELLLOOO This script will upgrade Azure Connected Machine Agent to the latest version: $latestVersion"
+Write-Host "This script will upgrade Azure Connected Machine Agent to the latest version: $latestVersion"
 
 
 function CheckVersion {
