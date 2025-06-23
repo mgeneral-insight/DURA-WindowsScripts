@@ -1,3 +1,6 @@
+. c:\scripts\insight\functions.ps1
+UpdateScript
+
 clear-host
 Write-Host @"
 ---------- Insight Automation Tool ----------

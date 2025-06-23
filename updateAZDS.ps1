@@ -1,5 +1,5 @@
 param ([switch]$batch, $server)
-. .\functions.ps1
+. c:\scripts\insight\functions.ps1
 UpdateScript 
 
 $latestVersion = Get-Content -Path "\\azncwv078\IT-Packages\Application Install Packages\AzureDataStudio\CurrentVersion.txt"
