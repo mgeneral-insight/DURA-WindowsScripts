@@ -23,6 +23,7 @@ function LogMessage {
     Add-Content -Path $LogFile -Value $LogEntry 
 
 }
+
 function UpdateScript {
     if (!(Test-Path -path "$scriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/$topLevelScript" -OutFile "$scriptPath\temp\$topLevelScript" -ErrorVariable DownloadFail
@@ -46,6 +47,7 @@ function UpdateScript {
     }
     Remove-Item -Path "$scriptPath\temp\$topLevelScript" -Force
 }
+
 function UpdateFunctions {
     if (!(Test-Path -path "$scriptPath\temp")) { $path = New-Item -Path "$scriptPath\temp" -ItemType Directory }
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/mgeneral-insight/DURA-WindowsScripts/main/functions.ps1" -OutFile "$scriptPath\temp\functions.ps1"
