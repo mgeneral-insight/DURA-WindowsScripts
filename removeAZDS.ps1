@@ -11,8 +11,8 @@ Write-Host "This script will REMOVE Azure Data Studio"
 ### Functions ###
 function checkInstall {
     $package = Invoke-Command -ComputerName $server -ScriptBlock { Get-Package -name "Azure Data Studio" }
-    if ($package) { return Installed }
-    else { return NOTInstalled}
+    if ($package) { return "Installed" }
+    else { return "NOTInstalled"}
 }
 
 function removeAZDS {
