@@ -10,8 +10,8 @@ Write-Host "This script will REMOVE Azure Data Studio"
 
 ### Functions ###
 function checkInstall {
-    $package = Invoke-Command -ComputerName $server -ScriptBlock { Get-Package -name "Azure Data Studio" }
-    if ($package) { return "Installed" }
+    $package = Invoke-Command -ComputerName $server -ScriptBlock { Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{6591F69E-6588-4980-81ED-C8FCBD7EC4B8}_is1" }
+    if ($package = "true") { return "Installed" }
     else { return "NOTInstalled"}
 }
 
@@ -92,6 +92,7 @@ if ($batch) {
         LogMessage -message "AZDS is not currently installed" -Severity Warn
         exit 1
     } elseif ($checkInstall -eq "Installed") {
+        $processrunning = get-process -Name "AzureDataStudio" -ComputerName $server -ErrorAction SilentlyContinue
         if ($processrunning) { 
             LogMessage -message "AZDS is currently running, skipping" -Severity Warn
         } else {
