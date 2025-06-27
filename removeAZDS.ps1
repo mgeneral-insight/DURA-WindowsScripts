@@ -21,7 +21,7 @@ function removeAZDS {
 ### /Functions ###
 
 if ($batch) {
-    $infilepath = "C:\scripts\InFiles\AZDSUpgrade.csv"
+    $infilepath = "C:\scripts\InFiles\removeAZDS.csv"
     $infile = Get-Content -Path $infilepath
     if (!(Test-path -path $infilepath)) {
         LogMessage -message "Input file not found, please create $infilepath and add server list to it." -Severity Error
@@ -38,7 +38,7 @@ if ($batch) {
     $i = 0
     foreach ($server in $infile) {
         $i++
-        Write-Progress -Id 0 -Activity 'Upgrading Azure Data Studio' -Status "Processing $($i) of $serverCount" -CurrentOperation $server -PercentComplete (($i/$serverCount) * 100)
+        Write-Progress -Id 0 -Activity 'Removing Azure Data Studio' -Status "Processing $($i) of $serverCount" -CurrentOperation $server -PercentComplete (($i/$serverCount) * 100)
         if (!(Test-Connection $server -Count 1 -ErrorAction SilentlyContinue)) {
             LogMessage -message "$server - Failed to ping" -Severity Error
             $result = "ERROR: Failed to connect"
@@ -73,8 +73,8 @@ if ($batch) {
     }
     $report | Export-Csv -NoTypeInformation $outfile
     $From = "Insight-Automations@duracell.com"
-    $Subject = "Azure Data Studip Upgrade Report - $Date"
-    $Body = "Attached is the Upgrade Report"
+    $Subject = "Azure Data Studio Removal Report - $Date"
+    $Body = "Attached is the Removal Report"
     $SMTPServer = "smtp.duracell.com"
     $SMTPPort = "25"
     if ($email) { Send-MailMessage -From $From -to $email -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -Attachments $outfile }
