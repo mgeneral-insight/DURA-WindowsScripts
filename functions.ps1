@@ -14,7 +14,7 @@ function LogMessage {
     $TimeStamp = Get-Date
     if (!(Test-Path -path "$scriptPath\Logs")) { $path = New-Item -Path "$scriptPath\Logs" -ItemType Directory }
     $LFTimeStamp = Get-Date -Format "yyyyMMdd"
-    $LogFile = "$scriptPath\Logs\$LFTimeStamp-$topLevelScriptBase.log"
+    if (!($LogFile) { $LogFile = "$scriptPath\Logs\$LFTimeStamp-$topLevelScriptBase.log" }
     $Severity = "[$Severity]"
     $LogEntry = "$TimeStamp : $Severity : $Message"
     if ($Severity -eq "[Error]") { Write-Host "$LogEntry" -ForegroundColor Red }
@@ -42,6 +42,7 @@ function UpdateScript {
         Copy-Item -Path "$scriptPath\temp\$topLevelScript" -Destination "$scriptPath\$topLevelScript" -Recurse
         & $topLevelscriptPath
         exit
+        #! Verify script restarts with updated code
     } else {
         LogMessage -Message "$topLevelScript is up to date."
     }
