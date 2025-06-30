@@ -1,3 +1,5 @@
+#! Make sure App config files update
+
 . c:\scripts\insight\functions.ps1
 $scriptPath = "C:\scripts\insight"
 $tempPath = "$scriptPath\temp"

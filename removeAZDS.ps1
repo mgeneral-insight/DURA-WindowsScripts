@@ -16,7 +16,7 @@ function checkInstall {
 }
 
 function removeAZDS {
-    Invoke-Command -ComputerName $server -ScriptBlock { & 'C:\Program Files\Azure Data Studio\unins000.exe' /SILENT }
+    Invoke-Command -ComputerName $server -ScriptBlock { start-process -filepath "C:\Program Files\Azure Data Studio\unins000.exe" -argumentlist "/SILENT" -wait }
 }
 ### /Functions ###
 

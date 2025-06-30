@@ -1,7 +1,8 @@
 param (
     $app,
     [switch]$batch, 
-    $server
+    $server,
+    [switch]$checkOnly #!
 )
 $LFTimeStamp = Get-Date -Format "yyyyMMdd"
 $LogFile = c:\scripts\Insight\Logs\$LFTimeStamp-updateSW_$app.log
@@ -10,7 +11,7 @@ UpdateScript
 #! Update Apps Dir
 
 ### Functions
-function GetAppVars {
+function GetAppConfig {
     if (!($app)) {
         clear-host
         write-host "---------- Insight Application Updater ----------"
@@ -67,7 +68,7 @@ $outFile = "C:\scripts\OutFiles\$app-Install-$date.csv"
 $inFile = "C:\scripts\InFiles\install-$app.csv"
 
 ### Run Script
-$appConfigFile = GetAppVars
+$appConfigFile = GetAppConfig
 . $appConfigFile
 
 LogMessage -message ----- START -----
@@ -77,6 +78,7 @@ Write-Host "This script will update $appName to the latest version: $latestVersi
 if ($batch) {
     $inServers = Get-Content -Path $inFile
     Write-Host "Batch mode dectected, this script will run on the following servers defined in $inFile`r`n"
+    if ($checkOnly) { write-host "Running in Check Only mode, only checking if update is needed. No changes will be made on the servers.`r`n" }
     $inServers
     while ("y","n" -notcontains $deploy) { $deploy = Read-Host -Prompt "`r`nDo you want to continue (y/n)?" }
     if ($deploy -eq "n") { exit 1 }
@@ -96,18 +98,24 @@ if ($batch) {
                 LogMessage -message "$server - $appName is already up to date."
             } else {
                 # update Required
-                LogMessage -message "$server - Outdated, attempting update. Current Version $currentVersion"
-                updateVersion
-                $afterVersion = checkVersion
-                if ($afterVersion -eq "Current") {
-                    $out = "Update Succeeded"
-                    LogMessage -message "$server - $appName Update Succeeded"
-                } elseif ($afterVersion -eq "NotInstalled") {
-                    $out = "ERROR: $appName not detected on server after update"
-                    LogMessage -message "$server - $appName not detected on server after update" -Severity Error
-                } else {
-                    $out = "ERROR: Update Failed"
-                    LogMessage -message "$server - Update Failed"
+                if ($checkOnly) { 
+                    LogMessage -message "$server - Update Needed, Current Version: $currentVersion" 
+                    $out = "Update Needed"
+                }
+                else {
+                    LogMessage -message "$server - Outdated, attempting update. Current Version $currentVersion"
+                    updateVersion
+                    $afterVersion = checkVersion
+                    if ($afterVersion -eq "Current") {
+                        $out = "Update Succeeded"
+                        LogMessage -message "$server - $appName Update Succeeded"
+                    } elseif ($afterVersion -eq "NotInstalled") {
+                        $out = "ERROR: $appName not detected on server after update"
+                        LogMessage -message "$server - $appName not detected on server after update" -Severity Error
+                    } else {
+                        $out = "ERROR: Update Failed"
+                        LogMessage -message "$server - Update Failed"
+                    }
                 }
             }
         }
@@ -121,11 +129,39 @@ if ($batch) {
     $report | Export-Csv -NoTypeInformation $outfile
     $From = "Insight-Automations@duracell.com"
     $Subject = "$appName Update Report - $Date"
-    $Body = "Attached is the Update Report"
+    $Body = "Attached is the Update Report `r`n $email"
     $SMTPServer = "smtp.duracell.com"
     $SMTPPort = "25"
     if ($email) { Send-MailMessage -From $From -to $email -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -Attachments $outfile }
     Send-MailMessage -From $From -to "michael.general@insight.com" -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -Attachments $outfile
 } else {
     # Single Server Mode
+    if (!($server)) { $server = Read-Host -Prompt "Enter Server Name" }
+    if (!(Test-Connection $server -Count 1 -ErrorAction SilentlyContinue)) { 
+        LogMessage -message "$server - Failed to Ping" -Severity Error
+    } else { 
+        $currentVersion = checkVersion
+        if ($currentVersion -eq "NotInstalled") {
+            LogMessage -message "$server - $appName is not installed." -Severity Warn
+        } elseif ($currentVersion -eq "Current") {
+            LogMessage -message "$server - $appName is already up to date."
+        } else {
+            # update Required
+            if ($checkOnly) { 
+                LogMessage -message "$server - Update Needed, Current Version: $currentVersion" 
+            }
+            else {
+                LogMessage -message "$server - Outdated, attempting update. Current Version $currentVersion"
+                updateVersion
+                $afterVersion = checkVersion
+                if ($afterVersion -eq "Current") {
+                    LogMessage -message "$server - $appName Update Succeeded"
+                } elseif ($afterVersion -eq "NotInstalled") {
+                    LogMessage -message "$server - $appName not detected on server after update" -Severity Error
+                } else {
+                    LogMessage -message "$server - Update Failed"
+                }
+            }
+        }
+    }
 }
