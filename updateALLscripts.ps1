@@ -53,5 +53,5 @@ foreach ($dir in $dirs) {
         }
     }
 }
-
+ 
 Remove-Item -Path "$tempPath\*" -Recurse -Force
