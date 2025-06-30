@@ -5,9 +5,9 @@ param (
     [switch]$checkOnly #!
 )
 $LFTimeStamp = Get-Date -Format "yyyyMMdd"
-$LogFile = c:\scripts\Insight\Logs\$LFTimeStamp-updateSW_$app.log
+$LogFile = "c:\scripts\Insight\Logs\$LFTimeStamp-updateSW_$app.log"
 . c:\scripts\insight\functions.ps1
-UpdateScript 
+#!UpdateScript 
 #! Update Apps Dir
 
 ### Functions
@@ -16,18 +16,20 @@ function GetAppConfig {
         clear-host
         write-host "---------- Insight Application Updater ----------"
         write-host "Select software to update from list below:"
-        $allApps = Get-ChildItem -Path "C:\scripts\insight\installSW" -Exclude _*
+        $allApps = Get-ChildItem -Path "C:\scripts\insight\updateSW\*" -Exclude _* -File
         $i=0
         $appSelector = @{}
         foreach ($appFile in $allApps) {
             $i++
             . $appFile.FullName
-            write-host "$i) $appName"
+            write-host "$i) $appName - $appFile"
             $appSelector.Add( $i, $appFile.FullName)
         }
         Do { [int]$selection = Read-Host "Choose an option (1-$i)" }
         Until (1..$i -contains $selection)
-        return "$appSelector[$selection]"
+        #return "$appSelector[$selection]"
+        $configFile = $appSelector[$selection]
+        return "$configFile"
 
     } else {
         if (!(test-path -path "C:\scripts\insight\updateSW\$app.ps1")) {
@@ -69,6 +71,7 @@ $inFile = "C:\scripts\InFiles\install-$app.csv"
 
 ### Run Script
 $appConfigFile = GetAppConfig
+$appConfigFile
 . $appConfigFile
 
 LogMessage -message ----- START -----
