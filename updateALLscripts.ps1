@@ -13,8 +13,8 @@ Invoke-WebRequest -Uri "https://github.com/mgeneral-insight/DURA-WindowsScripts/
 Expand-Archive -Path "$tempPath\repository.zip" -DestinationPath $tempPath -Force
 Remove-Item -Path "$tempPath\repository.zip" -Force
 
-Move-Item -Path "$tempPath\DURA-WindowsScripts-main\*" -Destination $tempPath -Recurse -Force
-Remove-Item -Path "$tempPath\DURA-WindowsScripts-main" -Force
+Move-Item -Path "$tempPath\DURA-WindowsScripts-main\*" -Destination $tempPath -Force
+Remove-Item -Path "$tempPath\DURA-WindowsScripts-main" -Force -Recurse
 
 $scripts = Get-ChildItem -Path $tempPath -File
 foreach ($script in $scripts) {
