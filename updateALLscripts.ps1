@@ -13,11 +13,10 @@ Invoke-WebRequest -Uri "https://github.com/mgeneral-insight/DURA-WindowsScripts/
 Expand-Archive -Path "$tempPath\repository.zip" -DestinationPath $tempPath -Force
 Remove-Item -Path "$tempPath\repository.zip" -Force
 
-Move-Item -Path "$tempPath\DURA-WindowsScripts-main\*" -Destination $tempPath 
+Move-Item -Path "$tempPath\DURA-WindowsScripts-main\*" -Destination $tempPath -Recurse -Force
 Remove-Item -Path "$tempPath\DURA-WindowsScripts-main" -Force
 
 $scripts = Get-ChildItem -Path $tempPath -File
-
 foreach ($script in $scripts) {
     if (!(Test-Path -Path "$scriptPath\$script")) {
         LogMessage -message "$script doesn't exist, creating"
@@ -30,6 +29,24 @@ foreach ($script in $scripts) {
             Copy-Item -Path "$tempPath\$script" -Destination "$scriptPath\$script" -Recurse -Force
         } else {
             LogMessage -Message "$script is up to date."
+        }
+    }
+}
+
+$dirs = get-ChildItem -path $tempPath -directory
+foreach ($dir in $dirs) {
+    if (!(Test-Path -Path "$scriptPath\$dir")) { New-Item -ItemType Directory -Force -Path $scriptPath\$dir }
+    if (!(Test-Path -Path "$scriptPath\$dir\$script")) {
+        LogMessage -message "$dir\$script doesn't exist, creating"
+        Copy-Item -Path "$tempPath\$dir\$script" -Destination "$scriptPath\$dir"
+    } else {
+        $LatestHash = (Get-FileHash -Path "$tempPath\$dir\$script").Hash
+        $CurrentHash = (Get-FileHash -Path "$scriptPath\$dir\$script").Hash
+        if ($CurrentHash -ne $LatestHash) {
+            LogMessage -message "$dir\$script is outdated, updating"
+            Copy-Item -Path "$tempPath\$dir\$script" -Destination "$scriptPath\$dir\$script" -Recurse -Force
+        } else {
+            LogMessage -Message "$dir\$script is up to date."
         }
     }
 }

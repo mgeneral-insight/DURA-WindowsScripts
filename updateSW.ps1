@@ -16,7 +16,7 @@ function GetAppConfig {
         clear-host
         write-host "---------- Insight Application Updater ----------"
         write-host "Select software to update from list below:"
-        $allApps = Get-ChildItem -Path "C:\scripts\insight\installSW" -file
+        $allApps = Get-ChildItem -Path "C:\scripts\insight\installSW" -Exclude _*
         $i=0
         $appSelector = @{}
         foreach ($appFile in $allApps) {
@@ -56,8 +56,8 @@ function checkVersion {
 #! ---
 function updateVersion {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' } }
-    Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$app.exe"
-
+    $installerExt = (get-item -path $installerPath).extension
+    Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$app.$extension" -force
     Invoke-Command -ComputerName $server -ScriptBlock { $updateString }
 }
 #!
