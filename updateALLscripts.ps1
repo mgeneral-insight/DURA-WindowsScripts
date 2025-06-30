@@ -16,7 +16,7 @@ Remove-Item -Path "$tempPath\repository.zip" -Force
 Move-Item -Path "$tempPath\DURA-WindowsScripts-main\*" -Destination $tempPath -Force
 Remove-Item -Path "$tempPath\DURA-WindowsScripts-main" -Force -Recurse
 
-$scripts = Get-ChildItem -Path "$tempPath\*" -File -Exclude _*
+$scripts = Get-ChildItem -Path "$tempPath" -File
 foreach ($script in $scripts) {
     if (!(Test-Path -Path "$scriptPath\$script")) {
         LogMessage -message "$script doesn't exist, creating"
