@@ -71,7 +71,6 @@ $outFile = "C:\scripts\OutFiles\$app-Install-$date.csv"
 
 ### Run Script
 $appConfigFile = GetAppConfig
-$appConfigFile
 . $appConfigFile
 
 LogMessage -message ----- START -----
@@ -79,7 +78,7 @@ Clear-Host
 Write-Host "This script will update $appName to the latest version: $latestVersion"
 
 if ($batch) {
-    $inFile = "C:\scripts\InFiles\install-$app.csv"
+    $inFile = "C:\scripts\InFiles\update$app.csv"
     if (!(test-path -path $inFile)) { 
         write-host "ERROR: Input file not found, create a the file $infile and populate it with a list of servers"
         exit 1
