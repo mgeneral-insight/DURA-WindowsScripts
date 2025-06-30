@@ -36,17 +36,20 @@ foreach ($script in $scripts) {
 $dirs = get-ChildItem -path $tempPath -directory
 foreach ($dir in $dirs) {
     if (!(Test-Path -Path "$scriptPath\$dir")) { New-Item -ItemType Directory -Force -Path $scriptPath\$dir }
-    if (!(Test-Path -Path "$scriptPath\$dir\$script")) {
-        LogMessage -message "$dir\$script doesn't exist, creating"
-        Copy-Item -Path "$tempPath\$dir\$script" -Destination "$scriptPath\$dir"
-    } else {
-        $LatestHash = (Get-FileHash -Path "$tempPath\$dir\$script").Hash
-        $CurrentHash = (Get-FileHash -Path "$scriptPath\$dir\$script").Hash
-        if ($CurrentHash -ne $LatestHash) {
-            LogMessage -message "$dir\$script is outdated, updating"
-            Copy-Item -Path "$tempPath\$dir\$script" -Destination "$scriptPath\$dir\$script" -Recurse -Force
+    $scripts = Get-ChildItem -Path $tempPath\$dir -File
+    foreach ($script in $scripts) {
+        if (!(Test-Path -Path "$scriptPath\$dir\$script")) {
+            LogMessage -message "$dir\$script doesn't exist, creating"
+            Copy-Item -Path "$tempPath\$dir\$script" -Destination "$scriptPath\$dir"
         } else {
-            LogMessage -Message "$dir\$script is up to date."
+            $LatestHash = (Get-FileHash -Path "$tempPath\$dir\$script").Hash
+            $CurrentHash = (Get-FileHash -Path "$scriptPath\$dir\$script").Hash
+            if ($CurrentHash -ne $LatestHash) {
+                LogMessage -message "$dir\$script is outdated, updating"
+                Copy-Item -Path "$tempPath\$dir\$script" -Destination "$scriptPath\$dir\$script" -Recurse -Force
+            } else {
+                LogMessage -Message "$dir\$script is up to date."
+            }
         }
     }
 }
