@@ -67,7 +67,7 @@ function updateVersion {
 ### Static Variables
 $date = Get-Date -Format MMddyyyy-HHMMss
 $outFile = "C:\scripts\OutFiles\$app-Install-$date.csv"
-$inFile = "C:\scripts\InFiles\install-$app.csv"
+
 
 ### Run Script
 $appConfigFile = GetAppConfig
@@ -79,6 +79,11 @@ Clear-Host
 Write-Host "This script will update $appName to the latest version: $latestVersion"
 
 if ($batch) {
+    $inFile = "C:\scripts\InFiles\install-$app.csv"
+    if (!(test-path -path $inFile)) { 
+        write-host "ERROR: Input file not found, create a the file $infile and populate it with a list of servers"
+        exit 1
+    }
     $inServers = Get-Content -Path $inFile
     Write-Host "Batch mode dectected, this script will run on the following servers defined in $inFile`r`n"
     if ($checkOnly) { write-host "Running in Check Only mode, only checking if update is needed. No changes will be made on the servers.`r`n" }
