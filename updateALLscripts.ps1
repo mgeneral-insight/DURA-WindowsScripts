@@ -33,10 +33,10 @@ foreach ($script in $scripts) {
     }
 }
 
-$dirs = get-ChildItem -path $tempPath -directory
+$dirs = (get-ChildItem -path $tempPath -directory).name
 foreach ($dir in $dirs) {
     if (!(Test-Path -Path "$scriptPath\$dir")) { New-Item -ItemType Directory -Force -Path $scriptPath\$dir }
-    $scripts = Get-ChildItem -Path "$tempPath\$dir\*" -File -Exclude _*
+    $scripts = (Get-ChildItem -Path "$tempPath\$dir\*" -File -Exclude _*).Name
     foreach ($script in $scripts) {
         if (!(Test-Path -Path "$scriptPath\$dir\$script")) {
             LogMessage -message "$dir\$script doesn't exist, creating"
