@@ -15,14 +15,15 @@ function GetAppConfig {
     if (!($app)) {
         clear-host
         write-host "---------- Insight Application Updater ----------"
-        write-host "Select software to update from list below:"
+        if ($checkOnly) { write-host "Select software to update from list below:" }
+        else { write-host "Select software to check for updates from list below:" }
         $allApps = Get-ChildItem -Path "C:\scripts\insight\updateSW\*" -Exclude _* -File
         $i=0
         $appSelector = @{}
         foreach ($appFile in $allApps) {
             $i++
             . $appFile.FullName
-            write-host "$i) $appName - $appFile"
+            write-host "$i) $appName"
             $appSelector.Add( $i, $appFile.FullName)
         }
         Do { [int]$selection = Read-Host "Choose an option (1-$i)" }
@@ -30,7 +31,6 @@ function GetAppConfig {
         #return "$appSelector[$selection]"
         $configFile = $appSelector[$selection]
         return "$configFile"
-
     } else {
         if (!(test-path -path "C:\scripts\insight\updateSW\$app.ps1")) {
             write-host "Error: Application Configuration file not found:  C:\scripts\insight\updateSW\$app.ps1 "
