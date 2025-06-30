@@ -2,12 +2,12 @@ param (
     $app,
     [switch]$batch, 
     $server,
-    [switch]$checkOnly #!
+    [switch]$checkOnly 
 )
 $LFTimeStamp = Get-Date -Format "yyyyMMdd"
 $LogFile = "c:\scripts\Insight\Logs\$LFTimeStamp-updateSW_$app.log"
 . c:\scripts\insight\functions.ps1
-#!UpdateScript 
+UpdateScript 
 #! Update Apps Dir
 
 ### Functions
@@ -28,7 +28,6 @@ function GetAppConfig {
         }
         Do { [int]$selection = Read-Host "Choose an option (1-$i)" }
         Until (1..$i -contains $selection)
-        #return "$appSelector[$selection]"
         $configFile = $appSelector[$selection]
         return "$configFile"
     } else {
@@ -40,7 +39,6 @@ function GetAppConfig {
         }
     }
 }
-
 function checkVersion {
     $cVersion = currentVersionCMD
     if (!($cVersion)) { 
@@ -54,37 +52,31 @@ function checkVersion {
         }
     }
 }
-
-#! ---
 function updateVersion {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' } }
     $installerExt = (get-item -path $installerPath).extension
     Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$app.$extension" -force
     Invoke-Command -ComputerName $server -ScriptBlock { $updateString }
 }
-#!
-
-### Static Variables
-$date = Get-Date -Format MMddyyyy-HHMMss
-$outFile = "C:\scripts\OutFiles\$app-Install-$date.csv"
-
 
 ### Run Script
 $appConfigFile = GetAppConfig
 . $appConfigFile
-
 LogMessage -message ----- START -----
 Clear-Host
-Write-Host "This script will update $appName to the latest version: $latestVersion"
+if ($checkOnly) { write-host "This script will check if updates are required for $appName. The latest version is $latestVersion."}
+else { Write-Host "This script will update $appName to the latest version: $latestVersion" }
 
 if ($batch) {
     $inFile = "C:\scripts\InFiles\update$app.csv"
+    $outFile = "C:\scripts\OutFiles\$app-Install-$date.csv"
+    $date = Get-Date -Format MMddyyyy-HHMMss
     if (!(test-path -path $inFile)) { 
         write-host "ERROR: Input file not found, create a the file $infile and populate it with a list of servers"
         exit 1
     }
     $inServers = Get-Content -Path $inFile
-    Write-Host "Batch mode dectected, this script will run on the following servers defined in $inFile`r`n"
+    Write-Host "Batch mode dectected, this script will run on the following servers defined in $inFile"
     if ($checkOnly) { write-host "Running in Check Only mode, only checking if update is needed. No changes will be made on the servers.`r`n" }
     $inServers
     while ("y","n" -notcontains $deploy) { $deploy = Read-Host -Prompt "`r`nDo you want to continue (y/n)?" }
