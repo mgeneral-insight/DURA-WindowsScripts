@@ -5,13 +5,13 @@ param (
     [switch]$checkOnly 
 )
 $LFTimeStamp = Get-Date -Format "yyyyMMdd"
-$LogFile = "c:\scripts\Insight\Logs\$LFTimeStamp-updateSW_$app.log"
+$LogFile = "c:\scripts\Insight\Logs\$LFTimeStamp-installSW_$app.log"
 . c:\scripts\insight\functions.ps1
 UpdateScript 
 # Update App Configs
 function UpdateConfigs {
     $tempDir = "C:\scripts\insight\temp"
-    $configDir = "C:\scripts\insight\updateSW"
+    $configDir = "C:\scripts\insight\installSW"
     if (!(Test-Path -Path "$configDir")) { New-Item -ItemType Directory -Force -Path $configDir }
     Remove-Item -Path "$tempDir\*" -Recurse -Force
     Invoke-WebRequest -Uri "https://github.com/mgeneral-insight/DURA-WindowsScripts/archive/refs/heads/main.zip" -OutFile "$tempDir\repository.zip"
@@ -19,19 +19,19 @@ function UpdateConfigs {
     Remove-Item -Path "$tempDir\repository.zip" -Force
     Move-Item -Path "$tempDir\DURA-WindowsScripts-main\*" -Destination $tempDir -Force
     Remove-Item -Path "$tempDir\DURA-WindowsScripts-main" -Force -Recurse
-    $configs = (Get-ChildItem -Path "$tempDir\updateSW\*" -File -Exclude _*).Name
+    $configs = (Get-ChildItem -Path "$tempDir\installSW\*" -File -Exclude _*).Name
     foreach ($config in $configs) {
         if (!(Test-Path -Path "$configDir\$config")) {
-            LogMessage -message "updateSW\$config doesn't exist, creating"
-            Copy-Item -Path "$tempDir\updateSW\$config" -Destination "$configDir"
+            LogMessage -message "installSW\$config doesn't exist, creating"
+            Copy-Item -Path "$tempDir\installSW\$config" -Destination "$configDir"
         } else {
-            $LatestHash = (Get-FileHash -Path "$tempDir\updateSW\$config").Hash
+            $LatestHash = (Get-FileHash -Path "$tempDir\installSW\$config").Hash
             $CurrentHash = (Get-FileHash -Path "$configDir\$config").Hash
             if ($CurrentHash -ne $LatestHash) {
-                LogMessage -message "updateSW\$config is outdated, updating"
-                Copy-Item -Path "$tempDir\updateSW\$config" -Destination "$configDir\$config" -Recurse -Force
+                LogMessage -message "installSW\$config is outdated, updating"
+                Copy-Item -Path "$tempDir\installSW\$config" -Destination "$configDir\$config" -Recurse -Force
             } else {
-                LogMessage -Message "updateSW\$config is up to date."
+                LogMessage -Message "installSW\$config is up to date."
             }
         }
     }
@@ -41,10 +41,10 @@ UpdateConfigs
 function GetAppConfig {
     if (!($app)) {
         clear-host
-        write-host "---------- Insight Application Updater ----------"
-        if ($checkOnly) { write-host "Select software to update from list below:" }
-        else { write-host "Select software to check for updates from list below:" }
-        $allApps = Get-ChildItem -Path "C:\scripts\insight\updateSW\*" -Exclude _* -File
+        write-host "---------- Insight Application Installer ----------"
+        if ($checkOnly) { write-host "Select software to install from list below:" }
+        else { write-host "Select software to check installation status from list below:" }
+        $allApps = Get-ChildItem -Path "C:\scripts\insight\installSW\*" -Exclude _* -File
         $i=0
         $appSelector = @{}
         foreach ($appFile in $allApps) {
@@ -58,28 +58,24 @@ function GetAppConfig {
         $configFile = $appSelector[$selection]
         return "$configFile"
     } else {
-        if (!(test-path -path "C:\scripts\insight\updateSW\$app.ps1")) {
-            write-host "Error: Application Configuration file not found:  C:\scripts\insight\updateSW\$app.ps1 "
+        if (!(test-path -path "C:\scripts\insight\installSW\$app.ps1")) {
+            write-host "Error: Application Configuration file not found:  C:\scripts\insight\installSW\$app.ps1 "
             exit 1
         } else {
-            return "C:\scripts\insight\updateSW\$app.ps1"
+            return "C:\scripts\insight\installSW\$app.ps1"
         }
     }
 }
-function checkVersion {
+function checkInstall {
     $cVersion = currentVersionCMD
     if (!($cVersion)) { 
         return "NotInstalled"
     }
     else {
-        if ($cVersion -eq $latestVersion) {
-            return "Current"
-        } else {
-            return "$cVersion"
-        }
+            return "Installed"
     }
 }
-function updateVersion {
+function installSW {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' } }
     $installerExt = (get-item -path $installerPath).extension
     Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$app.$extension" -force
@@ -91,20 +87,30 @@ $appConfigFile = GetAppConfig
 . $appConfigFile
 LogMessage -message ----- START -----
 Clear-Host
-if ($checkOnly) { write-host "This script will check if updates are required for $appName. The latest version is $latestVersion."}
-else { Write-Host "This script will update $appName to the latest version: $latestVersion" }
+if ($checkOnly) { write-host "This script will check for the presence of $appName."}
+else { Write-Host "This script will install $appName." }
+
+if (!($batch)) {
+    $batchMode = read-host -Prompt "Would you like to run this script in batch mode on a group of servers? (y/N)"
+    while ("y","n",$null -notcontains $deploy) { $deploy = Read-Host -Prompt "`r`nDo you want to run in batch mode (y/N)?" }
+    if ([string]::IsNullOrWhiteSpace($batchMode)) { $batch = $false } 
+    elseif ($batchMode -eq "n") { $batch = $false }
+    elseif ($batchMode -eq "y") { $batch = $true }
+}
 
 if ($batch) {
-    $inFile = "C:\scripts\InFiles\update$app.csv"
+    $inFile = "C:\scripts\InFiles\install$app.csv"
     $outFile = "C:\scripts\OutFiles\$app-Install-$date.csv"
     $date = Get-Date -Format MMddyyyy-HHMMss
+    write-host "Running in Batch Mode, add all servers you would like to run this script on, one server per line, to the file $infile."
+    read-host "Press ENTER once the input file is populated."
     if (!(test-path -path $inFile)) { 
         write-host "ERROR: Input file not found, create a the file $infile and populate it with a list of servers"
         exit 1
     }
     $inServers = Get-Content -Path $inFile
-    Write-Host "Batch mode dectected, this script will run on the following servers defined in $inFile"
-    if ($checkOnly) { write-host "Running in Check Only mode, only checking if update is needed. No changes will be made on the servers.`r`n" }
+    Write-Host "This script will run on the following servers defined in $inFile, please verify server list is correct."
+    if ($checkOnly) { write-host "Running in Check Only mode, only checking if software is installed. No changes will be made on the servers.`r`n" }
     $inServers
     while ("y","n" -notcontains $deploy) { $deploy = Read-Host -Prompt "`r`nDo you want to continue (y/n)?" }
     if ($deploy -eq "n") { exit 1 }
@@ -115,10 +121,10 @@ if ($batch) {
             $out = "ERROR: Failed to Ping" 
             LogMessage -message "$server - Failed to Ping" -Severity Error
         } else { 
-            $currentVersion = checkVersion
-            if ($currentVersion -eq "NotInstalled") {
+            $checkInstall = checkInstall
+            if ($checkInstall -eq "NotInstalled") { #!
                 $out = "Not Installed"
-                LogMessage -message "$server - $appName is not installed." -Severity Warn
+                LogMessage -message "$server - $appName is not installed."
             } elseif ($currentVersion -eq "Current") {
                 $out = "Latest Version Already Installed"
                 LogMessage -message "$server - $appName is already up to date."
