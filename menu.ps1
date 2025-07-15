@@ -2,7 +2,7 @@
 UpdateScript
 
 clear-host
-get-content -raw c:\scripts\insight\logo.txt
+#get-content -raw c:\scripts\insight\logo.txt
 Write-Host @"
 Select a task to perform:
 
