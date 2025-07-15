@@ -1,6 +1,6 @@
 . c:\scripts\insight\functions.ps1
 UpdateScript
-
+ 
 clear-host
 #get-content -raw c:\scripts\insight\logo.txt
 Write-Host @"
