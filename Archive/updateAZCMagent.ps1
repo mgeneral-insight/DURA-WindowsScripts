@@ -8,7 +8,7 @@ $outfile = "C:\scripts\OutFiles\AZCMUpgrade-$date.csv"
 LogMessage -message "----- START -----"
 Clear-Host
 Write-Host "This script will upgrade Azure Connected Machine Agent to the latest version: $latestVersion"
-
+ 
 
 function CheckVersion {
     $currentVersion = (Get-WmiObject -Class win32_product -ComputerName $server | Where-Object Name -eq "Azure Connected Machine Agent").version
@@ -20,7 +20,7 @@ function CheckVersion {
 
 function UpdateVersion {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' }}
-    Copy-Item -Path "\\azncwv078\IT-Packages\Application Install Packages\AzureConnectedMachineAgent\*.msi" -Destination \\$server\c$\IT\AZCMagent.msi
+    Copy-Item -Path "(Get-WmiObject -Class win32_product -ComputerName $server | Where-Object Name -eq "Azure Connected Machine Agent").version" -Destination \\$server\c$\IT\AZCMagent.msi
     Invoke-Command -ComputerName $server -ScriptBlock { 
         $InstallArg = '/i C:\IT\AZCMagent.msi /qn /l*v "C:\IT\azcmagentupgradesetup.log"'
         Start-Process msiexec.exe -Wait -ArgumentList $InstallArg
