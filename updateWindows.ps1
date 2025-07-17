@@ -14,6 +14,8 @@ if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
  }
 }
 
+clear-host 
+get-content -raw c:\scripts\insight\logo.txt
 
 while (!($server)) { 
     Write-Host "This script will check for updates for the input server, and ask if you would like to apply them"
@@ -33,7 +35,7 @@ elseif ($server.StartsWith("CNDG")) { if ("cndgwvddur001" -ne $dc) { Write-Host 
 #!
 elseif ($server.StartsWith("CNNC")) { if ("cnncwvddur001" -ne $dc) { Write-Host "Detected $server is a Nanchang server, please run this script on CNNCWVDDUR001" -ForegroundColor Red; exit 1 } }
 #!
-else { if ("lggawvddur001" -ne $dc) { Write-Host "Detected $server is a North America server, please run this script on LGGAWVDDUR001" -ForegroundColor Red; exit 1 } }
+else { if ("lggawv052" -ne $dc) { Write-Host "Detected $server is a North America server, please run this script on LGGAWV052" -ForegroundColor Red; exit 1 } }
 
 $updates = Get-WindowsUpdate -ComputerName $server -ErrorAction SilentlyContinue
 $updates
