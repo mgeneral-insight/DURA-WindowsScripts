@@ -83,14 +83,14 @@ function checkVersion {
 function updateSW {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' } }
     $installerExt = (get-item -path $installerPath).extension
-    Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$app.$extension" -force
+    Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$app.$installExt" -force
     if (!($updateString)) { $updateString = $installString }
     Invoke-Command -ComputerName $server -ScriptBlock { $updateString }
 }
 function installSW {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' } }
     $installerExt = (get-item -path $installerPath).extension
-    Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$app.$extension" -force
+    Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$app.$installerExt" -force
     Invoke-Command -ComputerName $server -ScriptBlock { $installString }
 }
 
@@ -196,8 +196,9 @@ if ($batch) {
         if ($currentVersion -eq "Current") {
             LogMessage -message "$server - $appName is already up to date."
         } elseif ($currentVersion -eq "NotInstalled") {
+            # Not Instaled
             LogMessage -message "$server - $appName is not installed." -Severity Warn
-            while ("y","n" -notcontains $performInstall) { $performInstall = Read-Host -Prompt "Do you want to attempt to install $appName on $server? (y/n)" }
+            while ("y","n" -notcontains $performInstall) { $performInstall = Read-Host -Prompt "Do you want to attempt to install $appName on $server ? (y/n)" }
             if ($performInstall -eq "y") {
                 installSW 
                 $afterVersion = checkVersion
