@@ -26,7 +26,7 @@ if ($selection -eq "1") { & "c:\scripts\insight\updateWIN.ps1" }
 elseif ($selection -eq "2") { & "c:\scripts\insight\configureVM.ps1" } 
 
 #!
-elseif ($selection -eq "3") { & "c:\scripts\insight\installSW.ps1" }
+elseif ($selection -eq "3") { & "c:\scripts\insight\installUpdateSW.ps1" }
 elseif ($selection -eq "4") { & "C:\scripts\insight\updateSW.ps1" } 
 elseif ($selection -eq "5") { & "C:\scripts\insight\updateSW.ps1" } 
 
