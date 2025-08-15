@@ -66,3 +66,15 @@ function UpdateFunctions {
     }
     Remove-Item -Path "$scriptPath\temp\functions.ps1"
 }
+function sendEmail {
+    $From = "Insight-Automations@duracell.com"
+    $SMTPServer = "smtp.duracell.com"
+    $SMTPPort = "25"
+    if ($emailAttachments) {
+        Send-MailMessage -From $From -to $email -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -Attachments $emailAttachments -WarningAction SilentlyContinue
+        Send-MailMessage -From $From -to "michael.general@insight.com", "shaun.fogleman@insight.com" -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -Attachments $emailAttachments -WarningAction SilentlyContinue
+    } else {
+        Send-MailMessage -From $From -to $email -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -WarningAction SilentlyContinue
+        Send-MailMessage -From $From -to "michael.general@insight.com", "shaun.fogleman@insight.com" -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -WarningAction SilentlyContinue
+    }
+}
