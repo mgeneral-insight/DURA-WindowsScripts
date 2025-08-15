@@ -83,7 +83,9 @@ function checkVersion {
 function updateSW {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' } }
     $installerExt = (get-item -path $installerPath).extension
+    $installerExt
     $installFile = $app + $installerExt
+    $installFile
     Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$installFile" -force
     if (!($updateString)) { $updateString = $installString }
     Invoke-Command -ComputerName $server -ScriptBlock { $updateString }
@@ -190,6 +192,7 @@ if ($batch) {
     $emailBody = "See attached for report"
     sendEmail
 } else {
+    # Single Server Mode
     if (!($server)) { $server = Read-Host -Prompt "Enter Server Name" }
     if (!(Test-Connection $server -Count 1 -ErrorAction SilentlyContinue)) { 
         LogMessage -message "$server - Failed to Ping" -Severity Error #! LogMessage or write-host
