@@ -83,9 +83,7 @@ function checkVersion {
 function updateSW {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' } }
     $installerExt = (get-item -path $installerPath).extension
-    $installerExt
     $installFile = "$app$installerExt"
-    $installFile
     Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$installFile" -force
     if (!($updateString)) { $updateString = $installString }
     Invoke-Command -ComputerName $server -ScriptBlock { $updateString }
@@ -93,7 +91,7 @@ function updateSW {
 function installSW {
     Invoke-Command -ComputerName $server -ScriptBlock { if (!(Test-Path 'C:\IT')) { $path = New-Item -Path 'C:\' -Name 'IT' -ItemType 'directory' } }
     $installerExt = (get-item -path $installerPath).extension
-    $installFile = $app + $installerExt
+    $installFile = "$app$installerExt"
     Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$installFile" -force
     Invoke-Command -ComputerName $server -ScriptBlock { $installString }
 }
