@@ -195,6 +195,7 @@ if ($batch) {
     if (!($server)) { $server = Read-Host -Prompt "Enter Server Name" }
     if (!(Test-Connection $server -Count 1 -ErrorAction SilentlyContinue)) { 
         LogMessage -message "$server - Failed to Ping" -Severity Error #! LogMessage or write-host
+        exit 1
     } else { 
         $currentVersion = checkVersion
         if ($currentVersion -eq "Current") {
