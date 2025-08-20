@@ -37,6 +37,7 @@ function UpdateConfigs {
             }
         }
     }
+    Remove-Item -Path "$tempDir\*" -Recurse -Force
 }
 UpdateConfigs
 
