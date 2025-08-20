@@ -5,4 +5,3 @@ function currentVersionCMD { (Get-WmiObject -Class win32_product -ComputerName $
 $installerPath = "\\azncwv078\IT-Packages\Application Install Packages\VMware Tools\latest\*.exe" # Path to shared install file
 $latestVersion = ((Get-ItemProperty $installerPath).VersionInfo).ProductVersion 
 #$latestVersion = Get-Content -Path "\\azncwv078\IT-Packages\Application Install Packages\Splunk\Latest\CurrentVersion.txt"
-fg
