@@ -235,3 +235,4 @@ if ($batch) {
     }
 }
  Stop-Transcript
+ Get-History | Out-File $LogFilePath -Append
