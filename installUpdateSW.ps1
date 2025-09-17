@@ -93,6 +93,8 @@ function updateSW {
     $installFile = "$app$installerExt"
     Copy-Item -Path $installerPath -Destination "\\$server\c$\IT\$installFile" -force
     if (!($updateString)) { $updateString = $installString }
+    ###
+    $updateString
     Invoke-Command -ComputerName $server -ScriptBlock { $updateString }
 }
 function installSW {
