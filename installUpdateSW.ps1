@@ -9,6 +9,10 @@ $LogFile = "c:\scripts\Insight\Logs\$LFTimeStamp-updateSW_$app.log"
 . c:\scripts\insight\functions.ps1
 UpdateScript 
 
+###
+$LogFilePath = "c:\scripts\Insight\Logs\TEMP-$LFTimeStamp-updateSW_$app.log"
+Start-Transcript -Path $LogFilePath -Append -Force
+
 function UpdateConfigs {
     $tempDir = "C:\scripts\insight\temp"
     $configDir = "C:\scripts\insight\SWconfigs"
@@ -230,3 +234,4 @@ if ($batch) {
         }
     }
 }
+ Stop-Transcript
