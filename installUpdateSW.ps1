@@ -10,6 +10,8 @@ $LogFile = "c:\scripts\Insight\Logs\$LFTimeStamp-updateSW_$app.log"
 UpdateScript 
 
 ###
+Clear-History
+
 $LogFilePath = "c:\scripts\Insight\Logs\TEMP-$LFTimeStamp-updateSW_$app.log"
 Start-Transcript -Path $LogFilePath -Append -Force
 
