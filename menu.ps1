@@ -14,8 +14,7 @@ Select a task to perform:
 5) Update Software on Windows Server
 
 6) Move a Server to Carbon Black Protection Bypass Policy
-7) Force Qualys Scan
-8) Create gMSA Account
+7) Create gMSA Account
 
 "@
 
@@ -32,6 +31,5 @@ elseif ($selection -eq "5") { & "C:\scripts\insight\updateSW.ps1" }
 
 
 elseif ($selection -eq "6") { & "C:\Scripts\insight\CBPdisable.ps1" } 
-elseif ($selection -eq "7") { & "C:\Scripts\insight\forceQualysScan.ps1" } 
-elseif ($selection -eq "8") { & "C:\Scripts\Insight\CreategMSAAccount.ps1" } 
+elseif ($selection -eq "7") { & "C:\Scripts\Insight\CreategMSAAccount.ps1" } 
 elseif ($selection -eq "9") { & "C:\Scripts\Insight\updateAZMCagent.ps1" }
